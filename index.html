@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lavandería del Dueño - Control Diario</title>
+    <meta name="description" content="Panel sencillo para el dueño: pedidos, servicios propios y cierre de caja profesional.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">LP</div>
+                <div>
+                    <h1 id="brand-name">Lavandería Simple</h1>
+                    <p class="logo-subtitle">Cuenta del dueño</p>
+                </div>
+            </div>
+            <nav>
+                <button class="nav-btn active" id="btn-dashboard" onclick="switchTab('dashboard')">
+                    <span class="icon">#</span> Panel
+                </button>
+                <button class="nav-btn" id="btn-services" onclick="switchTab('services')">
+                    <span class="icon">*</span> Servicios
+                </button>
+                <button class="nav-btn" id="btn-new-order" onclick="openNewOrderModal()">
+                    <span class="icon">+</span> Nuevo pedido
+                </button>
+                <button class="nav-btn" id="btn-cash" onclick="switchTab('cash')">
+                    <span class="icon">$</span> Caja profesional
+                </button>
+                <button class="nav-btn" id="btn-history" onclick="switchTab('history')">
+                    <span class="icon">=</span> Historial
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <p id="owner-footer">Solo para el dueño</p>
+                <span class="status-dot"></span> Activo
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="search-container">
+                    <input type="text" id="order-search" placeholder="Buscar cliente, ID o notas..." oninput="filterOrders()">
+                    <span class="search-icon">/</span>
+                </div>
+                <div class="user-profile">
+                    <div class="user-meta">
+                        <span class="date" id="current-date"></span>
+                        <span class="owner-tag" id="owner-display">Dueño</span>
+                    </div>
+                    <div class="avatar" id="owner-initials">DN</div>
+                </div>
+            </header>
+
+            <section id="dashboard" class="tab-content active">
+                <div class="owner-hero">
+                    <div>
+                        <p class="eyebrow">Panel del dueño</p>
+                        <h2>Control diario sin empleados</h2>
+                        <p>Registra pedidos, cobra y emite facturas en blanco y negro.</p>
+                    </div>
+                    <div class="hero-actions">
+                        <button class="btn-primary" onclick="openNewOrderModal()">Nuevo pedido</button>
+                        <button class="btn-secondary" onclick="switchTab('cash')">Cierre de caja</button>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Pedidos activos</h3>
+                        <p id="stat-active">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Listos para entregar</h3>
+                        <p id="stat-ready">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Cobrado hoy</h3>
+                        <p id="stat-paid">S/ 0.00</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Pendiente por cobrar</h3>
+                        <p id="stat-pending">S/ 0.00</p>
+                    </div>
+                </div>
+
+                <div class="orders-section">
+                    <div class="section-header">
+                        <h2>Pedidos en curso</h2>
+                        <div class="filters">
+                            <span class="filter-chip active" data-filter="todos">Todos</span>
+                            <span class="filter-chip" data-filter="recibido">Recibido</span>
+                            <span class="filter-chip" data-filter="en_proceso">En proceso</span>
+                            <span class="filter-chip" data-filter="listo">Listo</span>
+                        </div>
+                    </div>
+
+                    <div class="orders-list" id="orders-container">
+                        <div class="empty-state">
+                            <p>No hay pedidos activos actualmente.</p>
+                            <button class="btn-primary" onclick="openNewOrderModal()">Crear primer pedido</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="services" class="tab-content">
+                <div class="section-header">
+                    <h2>Servicios a tu medida</h2>
+                    <button class="btn-secondary" type="button" onclick="resetToSuggestedServices()">Restaurar sugeridos</button>
+                </div>
+
+                <div class="services-layout">
+                    <div class="service-creator">
+                        <div class="creator-head">
+                            <div>
+                                <h3>Crea tu servicio</h3>
+                                <p>Elige una plantilla o arma tu servicio en segundos.</p>
+                            </div>
+                            <div class="template-group">
+                                <button type="button" class="template-chip" data-template="lavado">Lavado por kilo</button>
+                                <button type="button" class="template-chip" data-template="planchado">Planchado por pieza</button>
+                                <button type="button" class="template-chip" data-template="especial">Edredón premium</button>
+                            </div>
+                        </div>
+
+                        <form id="service-form" class="service-form">
+                            <input type="hidden" id="service-id">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="service-name">Nombre del servicio</label>
+                                    <input type="text" id="service-name" placeholder="Ej: Lavado express" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="service-price">Precio S/</label>
+                                    <input type="number" id="service-price" step="any" min="0" placeholder="0.00" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="service-unit">Unidad de cobro</label>
+                                    <select id="service-unit">
+                                        <option value="kg">Por kilo (kg)</option>
+                                        <option value="pieza">Por pieza</option>
+                                        <option value="servicio">Por servicio</option>
+                                        <option value="paquete">Por paquete</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="service-tone">Estilo de tarjeta</label>
+                                    <select id="service-tone">
+                                        <option value="aqua">Aqua</option>
+                                        <option value="amber">Arena</option>
+                                        <option value="rose">Rosa</option>
+                                        <option value="slate">Carbón</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="service-desc">Descripción corta</label>
+                                <input type="text" id="service-desc" placeholder="Ej: Entrega en 24 horas">
+                            </div>
+                            <div class="creator-actions">
+                                <button type="submit" class="btn-primary" id="service-submit">Guardar servicio</button>
+                                <button type="button" class="btn-secondary" id="service-reset" onclick="resetServiceForm()">Limpiar</button>
+                            </div>
+                        </form>
+
+                        <div class="service-preview">
+                            <p class="preview-label">Vista previa</p>
+                            <div class="service-card tone-aqua" id="service-preview-card">
+                                <div class="service-card-header">
+                                    <h4 id="preview-name">Lavado express</h4>
+                                    <span id="preview-price">S/ 0.00</span>
+                                </div>
+                                <p id="preview-desc">Describe tu servicio aquí.</p>
+                                <span class="service-unit" id="preview-unit">Por kilo</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="service-list-block">
+                        <div class="section-header compact">
+                            <h3>Tus servicios</h3>
+                        </div>
+                        <div id="service-list" class="service-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="cash" class="tab-content">
+                <div class="section-header">
+                    <h2>Caja del dueño</h2>
+                </div>
+
+                <div class="cash-grid primary">
+                    <div class="cash-card">
+                        <h3>Resumen de hoy</h3>
+                        <div class="cash-row">
+                            <span>Cobrado hoy</span>
+                            <strong id="cash-paid">S/ 0.00</strong>
+                        </div>
+                        <div class="cash-row">
+                            <span>Pendiente por cobrar</span>
+                            <strong id="cash-pending">S/ 0.00</strong>
+                        </div>
+                        <div class="cash-row">
+                            <span>Gastos del día</span>
+                            <strong id="cash-expenses">S/ 0.00</strong>
+                        </div>
+                        <div class="cash-row total">
+                            <span>Balance del día</span>
+                            <strong id="cash-net">S/ 0.00</strong>
+                        </div>
+                        <p class="helper">Balance = cobrado hoy - gastos.</p>
+                    </div>
+
+                    <div class="cash-card">
+                        <h3>Ventas por método</h3>
+                        <div class="cash-breakdown" id="cash-breakdown"></div>
+                        <p class="helper">Solo incluye pedidos pagados hoy.</p>
+                    </div>
+
+                    <div class="cash-card">
+                        <h3>Datos del dueño</h3>
+                        <form id="owner-form" class="owner-form">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="owner-name">Nombre del dueño</label>
+                                    <input type="text" id="owner-name" placeholder="Ej: María Pérez">
+                                </div>
+                                <div class="form-group">
+                                    <label for="business-name">Nombre del negocio</label>
+                                    <input type="text" id="business-name" placeholder="Ej: Lavandería Simple">
+                                </div>
+                                <div class="form-group">
+                                    <label for="business-phone">Teléfono</label>
+                                    <input type="text" id="business-phone" placeholder="Ej: 999 123 456">
+                                </div>
+                                <div class="form-group">
+                                    <label for="business-address">Dirección</label>
+                                    <input type="text" id="business-address" placeholder="Ej: Jr. Lima 123">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-primary">Guardar datos</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="cash-grid secondary">
+                    <div class="cash-card closure-card">
+                        <div class="section-header compact">
+                            <h3>Cierre de caja profesional</h3>
+                        </div>
+                        <form id="closure-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="opening-cash">Caja inicial S/</label>
+                                    <input type="number" id="opening-cash" step="any" min="0" placeholder="0.00">
+                                </div>
+                                <div class="form-group">
+                                    <label for="owner-withdraw">Retiro del dueño S/</label>
+                                    <input type="number" id="owner-withdraw" step="any" min="0" placeholder="0.00">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="cash-counted">Efectivo contado S/</label>
+                                    <input type="number" id="cash-counted" step="any" min="0" placeholder="0.00">
+                                </div>
+                                <div class="form-group">
+                                    <label for="cash-notes">Notas de cierre</label>
+                                    <input type="text" id="cash-notes" placeholder="Ej: faltó vuelto">
+                                </div>
+                            </div>
+                            <div class="closure-summary">
+                                <div class="summary-item">
+                                    <span>Esperado en caja</span>
+                                    <strong id="cash-expected">S/ 0.00</strong>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Diferencia</span>
+                                    <strong id="cash-diff">S/ 0.00</strong>
+                                </div>
+                            </div>
+                            <div class="creator-actions">
+                                <button type="submit" class="btn-primary">Guardar cierre</button>
+                                <button type="button" class="btn-secondary" onclick="resetClosureForm()">Limpiar</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="expense-card">
+                        <div class="section-header compact">
+                            <h3>Gastos del día</h3>
+                        </div>
+                        <form id="expense-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="expense-concept">Concepto</label>
+                                    <input type="text" id="expense-concept" placeholder="Ej: Detergente, bolsas..." required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="expense-amount">Monto S/</label>
+                                    <input type="number" id="expense-amount" step="any" min="0" required placeholder="0.00">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-secondary">Registrar gasto</button>
+                        </form>
+                        <div class="expense-list" id="expense-list">
+                            <p class="empty-msg">No hay gastos registrados hoy.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="closure-history" id="closure-history">
+                    <div class="section-header compact">
+                        <h3>Historial de cierres</h3>
+                    </div>
+                    <div class="closure-list" id="closure-list">
+                        <p class="empty-msg">Aún no registras cierres.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="history" class="tab-content">
+                <div class="section-header">
+                    <h2>Historial de pedidos</h2>
+                </div>
+                <div class="orders-list" id="history-container">
+                    <p class="empty-msg">No hay pedidos en el historial.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="order-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Nuevo pedido</h2>
+                <span class="close" onclick="closeModal('order-modal')">&times;</span>
+            </div>
+            <form id="new-order-form">
+                <div class="form-group">
+                    <label for="client-name">Nombre del cliente</label>
+                    <input type="text" id="client-name" required placeholder="Ej: Juan Pérez">
+                </div>
+                <div class="form-group">
+                    <label for="service-type">Servicio</label>
+                    <select id="service-type"></select>
+                    <button type="button" class="link-btn" onclick="goToServices()">Crear o editar servicios</button>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="weight" id="quantity-label">Cantidad</label>
+                        <input type="number" id="weight" step="0.1" min="0" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="total-price">Total S/</label>
+                        <input type="number" id="total-price" step="any" min="0" required placeholder="0.00">
+                        <div class="price-helper">
+                            <span id="price-suggestion">Sugerido: S/ 0.00</span>
+                            <button type="button" class="link-btn" onclick="applySuggestedPrice()">Usar sugerido</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="notes">Notas / Observaciones</label>
+                    <textarea id="notes" placeholder="Ej: Delicados, sin suavizante..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="payment-status">Estado de pago</label>
+                        <select id="payment-status">
+                            <option value="pagado">Pagado</option>
+                            <option value="pendiente">Pendiente</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="payment-method">Método de pago</label>
+                        <select id="payment-method">
+                            <option value="efectivo">Efectivo</option>
+                            <option value="transferencia">Transferencia</option>
+                            <option value="yape">Yape/Plin</option>
+                            <option value="tarjeta">Tarjeta</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeModal('order-modal')">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar e imprimir</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="printable-invoice" class="print-only">
+        <div class="invoice-box">
+            <header>
+                <div class="header-content">
+                    <p class="receipt-title">FACTURA DE SERVICIO</p>
+                    <p class="company-name" id="print-business">Lavandería Simple</p>
+                    <p class="company-details" id="print-owner">Dueño: -</p>
+                    <p class="company-details" id="print-phone">Teléfono: -</p>
+                    <p class="company-details" id="print-address">Dirección: -</p>
+                    <p class="invoice-id" id="invoice-id">#0000</p>
+                </div>
+            </header>
+            <hr>
+            <div class="details">
+                <p><strong>Cliente:</strong> <span id="print-client">-</span></p>
+                <p><strong>Fecha:</strong> <span id="print-date">-</span></p>
+                <p><strong>Servicio:</strong> <span id="print-service">-</span></p>
+                <p><strong id="print-quantity-label">Cantidad:</strong> <span id="print-weight">-</span> <span id="print-unit">-</span></p>
+                <p><strong>Pago:</strong> <span id="print-payment">-</span></p>
+                <p><strong>Método:</strong> <span id="print-method">-</span></p>
+            </div>
+            <hr>
+            <div class="notes">
+                <p><strong>Notas:</strong></p>
+                <p id="print-notes">-</p>
+            </div>
+            <hr>
+            <div class="total-section">
+                <p class="total-label">TOTAL:</p>
+                <p class="total-amount">S/ <span id="print-total">0.00</span></p>
+            </div>
+            <div class="footer">
+                <p>Gracias por su preferencia.</p>
+                <p>Presentar este ticket para recoger su ropa.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
