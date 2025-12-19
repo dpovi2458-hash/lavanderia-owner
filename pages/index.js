@@ -269,3 +269,341 @@ export default function Home() {
                             </div>
                         </div>
                     </section>
+                    <section id="cash" className="tab-content">
+                        <div className="section-header">
+                            <h2>Caja del dueno</h2>
+                        </div>
+
+                        <div className="cash-grid primary">
+                            <div className="cash-card">
+                                <h3>Resumen de hoy</h3>
+                                <div className="cash-row">
+                                    <span>Cobrado hoy</span>
+                                    <strong id="cash-paid">S/ 0.00</strong>
+                                </div>
+                                <div className="cash-row">
+                                    <span>Pendiente por cobrar</span>
+                                    <strong id="cash-pending">S/ 0.00</strong>
+                                </div>
+                                <div className="cash-row">
+                                    <span>Gastos del dia</span>
+                                    <strong id="cash-expenses">S/ 0.00</strong>
+                                </div>
+                                <div className="cash-row total">
+                                    <span>Balance del dia</span>
+                                    <strong id="cash-net">S/ 0.00</strong>
+                                </div>
+                                <p className="helper">Balance = cobrado hoy - gastos.</p>
+                            </div>
+
+                            <div className="cash-card">
+                                <h3>Ventas por metodo</h3>
+                                <div className="cash-breakdown" id="cash-breakdown"></div>
+                                <p className="helper">Solo incluye pedidos pagados hoy.</p>
+                            </div>
+
+                            <div className="cash-card">
+                                <h3>Datos del dueno</h3>
+                                <form id="owner-form" className="owner-form">
+                                    <div className="form-grid">
+                                        <div className="form-group">
+                                            <label htmlFor="owner-name">Nombre del dueno</label>
+                                            <input
+                                                type="text"
+                                                id="owner-name"
+                                                placeholder="Ej: Maria Perez"
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="business-name">Nombre del negocio</label>
+                                            <input
+                                                type="text"
+                                                id="business-name"
+                                                placeholder="Ej: Lavanderia Simple"
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="business-phone">Telefono</label>
+                                            <input
+                                                type="text"
+                                                id="business-phone"
+                                                placeholder="Ej: 999 123 456"
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="business-address">Direccion</label>
+                                            <input
+                                                type="text"
+                                                id="business-address"
+                                                placeholder="Ej: Jr. Lima 123"
+                                            />
+                                        </div>
+                                    </div>
+                                    <button type="submit" className="btn-primary">Guardar datos</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div className="cash-grid secondary">
+                            <div className="cash-card closure-card">
+                                <div className="section-header compact">
+                                    <h3>Cierre de caja profesional</h3>
+                                </div>
+                                <form id="closure-form">
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label htmlFor="opening-cash">Caja inicial S/</label>
+                                            <input
+                                                type="number"
+                                                id="opening-cash"
+                                                step="0.5"
+                                                min="0"
+                                                placeholder="0.00"
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="owner-withdraw">Retiro del dueno S/</label>
+                                            <input
+                                                type="number"
+                                                id="owner-withdraw"
+                                                step="0.5"
+                                                min="0"
+                                                placeholder="0.00"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label htmlFor="cash-counted">Efectivo contado S/</label>
+                                            <input
+                                                type="number"
+                                                id="cash-counted"
+                                                step="0.5"
+                                                min="0"
+                                                placeholder="0.00"
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="cash-notes">Notas de cierre</label>
+                                            <input type="text" id="cash-notes" placeholder="Ej: falta vuelto" />
+                                        </div>
+                                    </div>
+                                    <div className="closure-summary">
+                                        <div className="summary-item">
+                                            <span>Esperado en caja</span>
+                                            <strong id="cash-expected">S/ 0.00</strong>
+                                        </div>
+                                        <div className="summary-item">
+                                            <span>Diferencia</span>
+                                            <strong id="cash-diff">S/ 0.00</strong>
+                                        </div>
+                                    </div>
+                                    <div className="creator-actions">
+                                        <button type="submit" className="btn-primary">Guardar cierre</button>
+                                        <button
+                                            type="button"
+                                            className="btn-secondary"
+                                            onClick={() => window.resetClosureForm()}
+                                        >
+                                            Limpiar
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div className="expense-card">
+                                <div className="section-header compact">
+                                    <h3>Gastos del dia</h3>
+                                </div>
+                                <form id="expense-form">
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label htmlFor="expense-concept">Concepto</label>
+                                            <input
+                                                type="text"
+                                                id="expense-concept"
+                                                placeholder="Ej: Detergente, bolsas..."
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="expense-amount">Monto S/</label>
+                                            <input
+                                                type="number"
+                                                id="expense-amount"
+                                                step="0.5"
+                                                min="0"
+                                                required
+                                                placeholder="0.00"
+                                            />
+                                        </div>
+                                    </div>
+                                    <button type="submit" className="btn-secondary">Registrar gasto</button>
+                                </form>
+                                <div className="expense-list" id="expense-list">
+                                    <p className="empty-msg">No hay gastos registrados hoy.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="closure-history" id="closure-history">
+                            <div className="section-header compact">
+                                <h3>Historial de cierres</h3>
+                            </div>
+                            <div className="closure-list" id="closure-list">
+                                <p className="empty-msg">Aun no registras cierres.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="history" className="tab-content">
+                        <div className="section-header">
+                            <h2>Historial de pedidos</h2>
+                        </div>
+                        <div className="orders-list" id="history-container">
+                            <p className="empty-msg">No hay pedidos en el historial.</p>
+                        </div>
+                    </section>
+                </main>
+            </div>
+            <div id="order-modal" className="modal">
+                <div className="modal-content">
+                    <div className="modal-header">
+                        <h2>Nuevo pedido</h2>
+                        <span className="close" onClick={() => window.closeModal('order-modal')}>
+                            &times;
+                        </span>
+                    </div>
+                    <form id="new-order-form">
+                        <div className="form-group">
+                            <label htmlFor="client-name">Nombre del cliente</label>
+                            <input
+                                type="text"
+                                id="client-name"
+                                required
+                                placeholder="Ej: Juan Perez"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="service-type">Servicio</label>
+                            <select id="service-type"></select>
+                            <button type="button" className="link-btn" onClick={() => window.goToServices()}>
+                                Crear o editar servicios
+                            </button>
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label htmlFor="weight" id="quantity-label">Cantidad</label>
+                                <input
+                                    type="number"
+                                    id="weight"
+                                    step="0.1"
+                                    min="0"
+                                    defaultValue="1"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="total-price">Total S/</label>
+                                <input
+                                    type="number"
+                                    id="total-price"
+                                    step="0.5"
+                                    min="0"
+                                    required
+                                    placeholder="0.00"
+                                />
+                                <div className="price-helper">
+                                    <span id="price-suggestion">Sugerido: S/ 0.00</span>
+                                    <button
+                                        type="button"
+                                        className="link-btn"
+                                        onClick={() => window.applySuggestedPrice()}
+                                    >
+                                        Usar sugerido
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="notes">Notas / Observaciones</label>
+                            <textarea id="notes" placeholder="Ej: Delicados, sin suavizante..."></textarea>
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label htmlFor="payment-status">Estado de pago</label>
+                                <select id="payment-status">
+                                    <option value="pagado">Pagado</option>
+                                    <option value="pendiente">Pendiente</option>
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="payment-method">Metodo de pago</label>
+                                <select id="payment-method">
+                                    <option value="efectivo">Efectivo</option>
+                                    <option value="transferencia">Transferencia</option>
+                                    <option value="yape">Yape/Plin</option>
+                                    <option value="tarjeta">Tarjeta</option>
+                                    <option value="otro">Otro</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button
+                                type="button"
+                                className="btn-secondary"
+                                onClick={() => window.closeModal('order-modal')}
+                            >
+                                Cancelar
+                            </button>
+                            <button type="submit" className="btn-primary">Guardar e imprimir</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div id="printable-invoice" className="print-only">
+                <div className="invoice-box">
+                    <header>
+                        <div className="header-content">
+                            <p className="receipt-title">FACTURA DE SERVICIO</p>
+                            <p className="company-name" id="print-business">Lavanderia Simple</p>
+                            <p className="company-details" id="print-owner">Dueno: -</p>
+                            <p className="company-details" id="print-phone">Telefono: -</p>
+                            <p className="company-details" id="print-address">Direccion: -</p>
+                            <p className="invoice-id" id="invoice-id">#0000</p>
+                        </div>
+                    </header>
+                    <hr />
+                    <div className="details">
+                        <p><strong>Cliente:</strong> <span id="print-client">-</span></p>
+                        <p><strong>Fecha:</strong> <span id="print-date">-</span></p>
+                        <p><strong>Servicio:</strong> <span id="print-service">-</span></p>
+                        <p>
+                            <strong id="print-quantity-label">Cantidad:</strong> <span id="print-weight">-</span>{' '}
+                            <span id="print-unit">-</span>
+                        </p>
+                        <p><strong>Pago:</strong> <span id="print-payment">-</span></p>
+                        <p><strong>Metodo:</strong> <span id="print-method">-</span></p>
+                    </div>
+                    <hr />
+                    <div className="notes">
+                        <p><strong>Notas:</strong></p>
+                        <p id="print-notes">-</p>
+                    </div>
+                    <hr />
+                    <div className="total-section">
+                        <p className="total-label">TOTAL:</p>
+                        <p className="total-amount">
+                            S/ <span id="print-total">0.00</span>
+                        </p>
+                    </div>
+                    <div className="footer">
+                        <p>Gracias por su preferencia.</p>
+                        <p>Presentar este ticket para recoger su ropa.</p>
+                    </div>
+                </div>
+            </div>
+
+            <Script src="/app.js" strategy="afterInteractive" />
+        </>
+    );
+}
