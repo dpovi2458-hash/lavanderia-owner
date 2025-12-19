@@ -1,0 +1,13 @@
+{
+    "name": "lavanderia-owner",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Panel de lavandería para dueño con backend en Supabase.",
+    "scripts": {
+        "dev": "vercel dev",
+        "build": "echo \"Static site\""
+    },
+    "dependencies": {
+        "@supabase/supabase-js": "^2.45.4"
+    }
+}
