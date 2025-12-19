@@ -12,7 +12,6 @@ export default function Home() {
                     name="description"
                     content="Panel sencillo para el dueno: pedidos, servicios propios y cierre de caja profesional."
                 />
-                <link rel="icon" href="/favicon.ico" />
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 <link
@@ -199,7 +198,7 @@ export default function Home() {
                                             <input
                                                 type="number"
                                                 id="service-price"
-                                                step="0.01"
+                                                step="0.5"
                                                 min="0"
                                                 placeholder="0.00"
                                                 required
@@ -353,36 +352,36 @@ export default function Home() {
                                 <form id="closure-form">
                                     <div className="form-row">
                                         <div className="form-group">
-                                    <label htmlFor="opening-cash">Caja inicial S/</label>
-                                    <input
-                                        type="number"
-                                        id="opening-cash"
-                                        step="0.01"
-                                        min="0"
-                                        placeholder="0.00"
-                                    />
+                                            <label htmlFor="opening-cash">Caja inicial S/</label>
+                                            <input
+                                                type="number"
+                                                id="opening-cash"
+                                                step="0.5"
+                                                min="0"
+                                                placeholder="0.00"
+                                            />
                                         </div>
                                         <div className="form-group">
-                                    <label htmlFor="owner-withdraw">Retiro del dueno S/</label>
-                                    <input
-                                        type="number"
-                                        id="owner-withdraw"
-                                        step="0.01"
-                                        min="0"
-                                        placeholder="0.00"
-                                    />
+                                            <label htmlFor="owner-withdraw">Retiro del dueno S/</label>
+                                            <input
+                                                type="number"
+                                                id="owner-withdraw"
+                                                step="0.5"
+                                                min="0"
+                                                placeholder="0.00"
+                                            />
                                         </div>
                                     </div>
                                     <div className="form-row">
                                         <div className="form-group">
-                                    <label htmlFor="cash-counted">Efectivo contado S/</label>
-                                    <input
-                                        type="number"
-                                        id="cash-counted"
-                                        step="0.01"
-                                        min="0"
-                                        placeholder="0.00"
-                                    />
+                                            <label htmlFor="cash-counted">Efectivo contado S/</label>
+                                            <input
+                                                type="number"
+                                                id="cash-counted"
+                                                step="0.5"
+                                                min="0"
+                                                placeholder="0.00"
+                                            />
                                         </div>
                                         <div className="form-group">
                                             <label htmlFor="cash-notes">Notas de cierre</label>
@@ -428,15 +427,15 @@ export default function Home() {
                                             />
                                         </div>
                                         <div className="form-group">
-                                    <label htmlFor="expense-amount">Monto S/</label>
-                                    <input
-                                        type="number"
-                                        id="expense-amount"
-                                        step="0.01"
-                                        min="0"
-                                        required
-                                        placeholder="0.00"
-                                    />
+                                            <label htmlFor="expense-amount">Monto S/</label>
+                                            <input
+                                                type="number"
+                                                id="expense-amount"
+                                                step="0.5"
+                                                min="0"
+                                                required
+                                                placeholder="0.00"
+                                            />
                                         </div>
                                     </div>
                                     <button type="submit" className="btn-secondary">Registrar gasto</button>
@@ -508,7 +507,7 @@ export default function Home() {
                                 <input
                                     type="number"
                                     id="total-price"
-                                    step="0.01"
+                                    step="0.5"
                                     min="0"
                                     required
                                     placeholder="0.00"

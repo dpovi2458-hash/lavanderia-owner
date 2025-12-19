@@ -66,15 +66,6 @@ const SERVICE_TEMPLATES = {
     }
 };
 
-const FALLBACK_SERVICE = {
-    id: 'servicio_libre',
-    name: 'Servicio libre',
-    price: 0,
-    unit: 'servicio',
-    tone: 'slate',
-    description: ''
-};
-
 const UNIT_CONFIG = {
     kg: {
         label: 'Peso (kg)',
@@ -147,16 +138,11 @@ let closures = safeParse('lavapro_closures', []);
 let currentFilter = 'todos';
 let searchQuery = '';
 
-function scheduleInit() {
-    const run = () => requestAnimationFrame(initApp);
-    if (document.readyState === 'complete') {
-        run();
-        return;
-    }
-    window.addEventListener('load', run, { once: true });
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
 }
-
-scheduleInit();
 
 async function initApp() {
     await hydrateState();
@@ -214,16 +200,11 @@ async function loadRemoteState() {
 
     try {
         const response = await fetch(API_ENDPOINT, { cache: 'no-store' });
+        apiAvailable = response.ok;
         if (!response.ok) {
-            apiAvailable = false;
             return null;
         }
         const payload = await response.json();
-        if (payload && payload.available === false) {
-            apiAvailable = false;
-            return null;
-        }
-        apiAvailable = true;
         if (payload && payload.data) {
             return payload.data;
         }
@@ -301,24 +282,11 @@ async function persistRemoteState() {
     }
 
     try {
-        const response = await fetch(API_ENDPOINT, {
+        await fetch(API_ENDPOINT, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(getStateSnapshot())
         });
-        if (!response.ok) {
-            apiAvailable = false;
-            return;
-        }
-        let payload = null;
-        try {
-            payload = await response.json();
-        } catch (parseError) {
-            payload = null;
-        }
-        if (payload && payload.available === false) {
-            apiAvailable = false;
-        }
     } catch (error) {
         apiAvailable = false;
     }
@@ -599,8 +567,8 @@ function handleOrderSubmit(event) {
     event.preventDefault();
 
     const serviceId = document.getElementById('service-type').value;
-    const service = getOrderServiceById(serviceId) || FALLBACK_SERVICE;
-    const unit = service.unit || 'servicio';
+    const service = findService(serviceId);
+    const unit = service?.unit || 'servicio';
     const quantityInput = document.getElementById('weight');
     const quantityValue = parseMoney(quantityInput.value);
     const quantity = quantityValue || 0;
@@ -615,9 +583,9 @@ function handleOrderSubmit(event) {
         id: getNextOrderId(),
         client: document.getElementById('client-name').value.trim(),
         service: serviceId,
-        serviceName: service.name || 'Servicio',
+        serviceName: service?.name || serviceId,
         serviceUnit: unit,
-        servicePrice: parseMoney(service.price),
+        servicePrice: service?.price ?? 0,
         quantity,
         weight: quantity,
         notes: document.getElementById('notes').value.trim(),
@@ -772,7 +740,7 @@ function renderCash() {
     const paidToday = getPaidTodayTotal();
     const pendingTotal = getPendingTotal();
     const expenseTotal = getExpenseTotal(getDateKey(new Date()));
-    const net = fromCents(toCents(paidToday) - toCents(expenseTotal));
+    const net = paidToday - expenseTotal;
 
     const cashPaid = document.getElementById('cash-paid');
     if (cashPaid) {
@@ -890,9 +858,8 @@ function updateClosureSummary() {
     const counted = parseMoney(data.counted);
     const paidCash = getPaidCashToday();
     const expenseTotal = getExpenseTotal(dateKey);
-    const expectedCents = toCents(opening) + toCents(paidCash) - toCents(expenseTotal) - toCents(withdraw);
-    const expected = fromCents(expectedCents);
-    const diff = fromCents(toCents(counted) - expectedCents);
+    const expected = opening + paidCash - expenseTotal - withdraw;
+    const diff = counted - expected;
 
     const expectedEl = document.getElementById('cash-expected');
     if (expectedEl) {
@@ -911,19 +878,16 @@ function handleClosureSubmit(event) {
     const paidCash = getPaidCashToday();
     const paidToday = getPaidTodayTotal();
     const expenseTotal = getExpenseTotal(dateKey);
-    const opening = parseMoney(data.opening);
-    const withdraw = parseMoney(data.withdraw);
+    const expected = parseMoney(data.opening) + paidCash - expenseTotal - parseMoney(data.withdraw);
     const counted = parseMoney(data.counted);
-    const expectedCents = toCents(opening) + toCents(paidCash) - toCents(expenseTotal) - toCents(withdraw);
-    const expected = fromCents(expectedCents);
-    const diff = fromCents(toCents(counted) - expectedCents);
+    const diff = counted - expected;
 
     const record = {
         id: `C-${Date.now()}`,
         dateKey,
         closedAt: new Date().toISOString(),
-        opening,
-        withdraw,
+        opening: parseMoney(data.opening),
+        withdraw: parseMoney(data.withdraw),
         counted,
         notes: data.notes || '',
         paidCash,
@@ -987,14 +951,10 @@ function renderServiceSelect() {
         return;
     }
 
-    const list = getOrderServiceList();
-    select.innerHTML = list.map((service) => {
+    select.innerHTML = services.map((service) => {
         const unit = getUnitConfig(service.unit);
         const unitLabel = unit.short ? ` / ${unit.short}` : '';
-        const priceLabel = service.id === FALLBACK_SERVICE.id
-            ? 'precio manual'
-            : `S/ ${formatMoney(service.price)}${unitLabel}`;
-        return `<option value="${service.id}">${service.name} - ${priceLabel}</option>`;
+        return `<option value="${service.id}">${service.name} · S/ ${formatMoney(service.price)}${unitLabel}</option>`;
     }).join('');
 }
 
@@ -1063,13 +1023,12 @@ function saveServiceFromForm() {
     const idInput = document.getElementById('service-id');
     const id = idInput?.value || '';
     const name = document.getElementById('service-name').value.trim();
-    const priceValue = document.getElementById('service-price').value;
-    const price = parseMoney(priceValue);
+    const price = parseMoney(document.getElementById('service-price').value);
     const unit = document.getElementById('service-unit').value;
     const tone = document.getElementById('service-tone').value;
     const description = document.getElementById('service-desc').value.trim();
 
-    if (!name || priceValue === '' || price < 0) {
+    if (!name || !price) {
         return;
     }
 
@@ -1178,7 +1137,7 @@ function applyTemplate(key) {
 
 function updateServiceFields() {
     const serviceId = document.getElementById('service-type')?.value;
-    const service = getOrderServiceById(serviceId);
+    const service = findService(serviceId);
     const unit = service?.unit || 'servicio';
     const unitConfig = getUnitConfig(unit);
     const label = document.getElementById('quantity-label');
@@ -1214,17 +1173,15 @@ function applySuggestedPrice() {
 
 function getSuggestedPrice() {
     const serviceId = document.getElementById('service-type')?.value;
-    const service = getOrderServiceById(serviceId);
+    const service = findService(serviceId);
     if (!service) {
         return 0;
     }
     const quantity = parseMoney(document.getElementById('weight')?.value);
-    const basePrice = parseMoney(service.price);
     if (service.unit === 'servicio') {
-        return basePrice;
+        return service.price;
     }
-    const total = basePrice * (quantity || 0);
-    return roundMoney(total);
+    return service.price * (quantity || 0);
 }
 function filterOrders() {
     const query = document.getElementById('order-search').value.toLowerCase();
@@ -1280,7 +1237,7 @@ function getNextOrderId() {
 
 function getPaidTodayTotal() {
     const today = new Date();
-    const totalCents = orders
+    return orders
         .filter((order) => {
             if (order.paymentStatus !== 'pagado') {
                 return false;
@@ -1288,8 +1245,7 @@ function getPaidTodayTotal() {
             const paidAt = order.paidAt ? new Date(order.paidAt) : new Date(order.date);
             return isSameDay(paidAt, today);
         })
-        .reduce((sum, order) => sum + toCents(order.total), 0);
-    return fromCents(totalCents);
+        .reduce((sum, order) => sum + order.total, 0);
 }
 
 function getPaidBreakdownToday() {
@@ -1304,17 +1260,14 @@ function getPaidBreakdownToday() {
             return;
         }
         const method = order.paymentMethod || 'efectivo';
-        breakdown[method] = (breakdown[method] || 0) + toCents(order.total);
-    });
-    Object.keys(breakdown).forEach((method) => {
-        breakdown[method] = fromCents(breakdown[method]);
+        breakdown[method] = (breakdown[method] || 0) + order.total;
     });
     return breakdown;
 }
 
 function getPaidCashToday() {
     const today = new Date();
-    const totalCents = orders
+    return orders
         .filter((order) => {
             if (order.paymentStatus !== 'pagado') {
                 return false;
@@ -1322,21 +1275,18 @@ function getPaidCashToday() {
             const paidAt = order.paidAt ? new Date(order.paidAt) : new Date(order.date);
             return isSameDay(paidAt, today) && (order.paymentMethod || 'efectivo') === 'efectivo';
         })
-        .reduce((sum, order) => sum + toCents(order.total), 0);
-    return fromCents(totalCents);
+        .reduce((sum, order) => sum + order.total, 0);
 }
 
 function getPendingTotal() {
-    const totalCents = orders
+    return orders
         .filter((order) => order.paymentStatus === 'pendiente')
-        .reduce((sum, order) => sum + toCents(order.total), 0);
-    return fromCents(totalCents);
+        .reduce((sum, order) => sum + order.total, 0);
 }
 
 function getExpenseTotal(dateKey) {
     const items = Array.isArray(expenses[dateKey]) ? expenses[dateKey] : [];
-    const totalCents = items.reduce((sum, item) => sum + toCents(item.amount), 0);
-    return fromCents(totalCents);
+    return items.reduce((sum, item) => sum + item.amount, 0);
 }
 
 function getDateKey(date) {
@@ -1352,34 +1302,13 @@ function isSameDay(dateA, dateB) {
         && dateA.getDate() === dateB.getDate();
 }
 
-const MONEY_FACTOR = 100;
-
-function toCents(value) {
-    if (value === '' || value === null || value === undefined) {
-        return 0;
-    }
-    const cleaned = String(value).replace(',', '.');
-    const number = parseFloat(cleaned);
-    if (!Number.isFinite(number)) {
-        return 0;
-    }
-    return Math.round(number * MONEY_FACTOR);
-}
-
-function fromCents(cents) {
-    return Number.isFinite(cents) ? cents / MONEY_FACTOR : 0;
-}
-
-function roundMoney(value) {
-    return fromCents(toCents(value));
-}
-
 function formatMoney(value) {
-    return Number.isFinite(value) ? roundMoney(value).toFixed(2) : '0.00';
+    return Number.isFinite(value) ? value.toFixed(2) : '0.00';
 }
 
 function parseMoney(value) {
-    return roundMoney(value);
+    const number = parseFloat(value);
+    return Number.isFinite(number) ? number : 0;
 }
 
 function formatQuantity(value, unit) {
@@ -1425,32 +1354,7 @@ function getInitials(text) {
     return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
 }
 
-function getOrderServiceList() {
-    const list = Array.isArray(services) ? [...services] : [];
-    if (!list.some((service) => service.id === FALLBACK_SERVICE.id)) {
-        list.push(FALLBACK_SERVICE);
-    }
-    return list;
-}
-
-function getOrderServiceById(serviceId) {
-    const service = findService(serviceId);
-    if (service) {
-        return service;
-    }
-    if (serviceId === FALLBACK_SERVICE.id) {
-        return FALLBACK_SERVICE;
-    }
-    if (!Array.isArray(services) || services.length === 0) {
-        return FALLBACK_SERVICE;
-    }
-    return null;
-}
-
 function findService(id) {
-    if (!Array.isArray(services)) {
-        return null;
-    }
     return services.find((service) => service.id === id);
 }
 
@@ -1573,3 +1477,4 @@ function migrateOrders(existingOrders) {
         return updated;
     });
 }
+
